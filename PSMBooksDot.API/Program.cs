@@ -1,6 +1,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using PSMBooksDot.API.Data;
+using PSMBooksDot.API.Repositories;
 
 namespace PSMBooksDot.API
 {
@@ -21,6 +22,8 @@ namespace PSMBooksDot.API
             builder.Services.AddDbContext<PSMBooksShopDbContext>(options =>
                 options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 4, 2)))
             );
+
+            builder.Services.AddScoped<ICategoryRespository, CategoryRespository>();
 
             var app = builder.Build();
 

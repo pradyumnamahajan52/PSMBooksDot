@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PSMBooksDot.API.Data;
 using PSMBooksDot.API.DTO;
 using PSMBooksDot.API.Models;
+using PSMBooksDot.API.Repositories;
 
 namespace PSMBooksDot.API.Controllers
 {
@@ -10,16 +11,16 @@ namespace PSMBooksDot.API.Controllers
     [ApiController]
     public class BooksCategoryController : ControllerBase
     {
-        private readonly PSMBooksShopDbContext dbContext;
-        public BooksCategoryController(PSMBooksShopDbContext dbContext)
+        private readonly ICategoryRespository categoryRespository;
+
+        public BooksCategoryController(ICategoryRespository categoryRespository)
         {
-            this.dbContext = dbContext;
-            
+             this.categoryRespository = categoryRespository;
         }
         [HttpGet]
         public IActionResult GetAll()
         {
-            var booksCategoriesList = dbContext.BooksCategories.ToList();
+            var booksCategoriesList = categoryRespository.GetAll();
             var booksCategoriesListDTO = new List<AdminCategoryResponseDTO>();
             foreach (var bookCategoryItem in booksCategoriesList)
             {
@@ -39,7 +40,7 @@ namespace PSMBooksDot.API.Controllers
         [Route("{id:int}")]
         public IActionResult GetById([FromRoute] int id)
         {
-            var booksCategories = dbContext.BooksCategories.FirstOrDefault(x => x.Id == id);
+            var booksCategories = categoryRespository.GetById(id);
             if (booksCategories == null)
             {
                 return NotFound();
@@ -62,9 +63,10 @@ namespace PSMBooksDot.API.Controllers
             {
                 Type = adminCategoryRequestDTO.Type
             };
-            dbContext.BooksCategories.Add(booksCategory);
-            dbContext.SaveChanges();
+            //dbContext.BooksCategories.Add(booksCategory);
+            //dbContext.SaveChanges();
 
+            booksCategory = categoryRespository.Create(booksCategory);
             var booksCategoriesDTO = new AdminCategoryResponseDTO
             {
                 Id = booksCategory.Id,
@@ -79,15 +81,7 @@ namespace PSMBooksDot.API.Controllers
         [Route("{id:int}")]
         public IActionResult Update([FromRoute] int id, [FromBody] AdminCategoryRequestDTO adminCategoryRequestDTO)
         {
-            var booksCategories = dbContext.BooksCategories.FirstOrDefault(x => x.Id == id);
-            if (booksCategories == null)
-            {
-                return NotFound();
-            }
-            booksCategories.Type = adminCategoryRequestDTO.Type;
-            booksCategories.UpdatedAt = DateTime.UtcNow;
-
-            dbContext.SaveChanges();
+            var booksCategories = categoryRespository.Update(id,adminCategoryRequestDTO);            
 
             var booksCategoriesDTO = new AdminCategoryResponseDTO
             {
@@ -103,13 +97,8 @@ namespace PSMBooksDot.API.Controllers
         [Route("{id:int}")]
         public IActionResult Delete([FromRoute] int id)
         {
-            var booksCategories = dbContext.BooksCategories.FirstOrDefault(x => x.Id == id);
-            if (booksCategories == null)
-            {
-                return NotFound();
-            }
-            dbContext.BooksCategories.Remove(booksCategories);
-            dbContext.SaveChanges();
+            var booksCategories = categoryRespository.Delete(id);
+
             var booksCategoriesDTO = new AdminCategoryResponseDTO
             {
                 Id = booksCategories.Id,
